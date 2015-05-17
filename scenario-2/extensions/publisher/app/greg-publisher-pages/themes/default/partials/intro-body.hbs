@@ -1,0 +1,13 @@
+<div>
+	<h3>Available assets:</h3>
+</div>
+
+{{#if intro}}
+
+<ul>
+	{{#each intro.availableAssets}}
+	<li>{{shortName}}</li>
+	{{/each}}
+</ul>
+
+{{/if}}
