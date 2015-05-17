@@ -1,0 +1,58 @@
+<% 
+/*
+ *  Copyright (c) 2005-2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ *
+ */
+
+//You can access this page by navigating to: https://localhost:9443/publisher/asts/api/tiers	
+var caramel;
+require('/modules/publisher.js').exec(function(ctx) {
+
+	//Rendering without Caramel
+	//print('This is the Documents page - this is not using caramel');
+
+ 	//Rendering with Caramel in the context of a specific asset instance
+    var pattern = '/{context}/asts/{type}/{pageName}/{id}';
+    var utilsAPI = require('utils');
+    var uriMatcher = new URIMatcher(ctx.request.getRequestURI());
+    var options = uriMatcher.match(pattern);
+    var queryParams = utilsAPI.request.getQueryOptions(ctx.request.getQueryString());
+    var rxtAPI = require('rxt');
+    var assetManager;
+    var page = rxtAPI.ui.buildPage(ctx.session, ctx.request);
+    var asset;
+    var output;
+    caramel = require('caramel');
+    utilsAPI.reflection.copyProps(queryParams, options);
+    if ((!options.id) || (!options.type)) {
+        ctx.response.sendError(400, 'Please provide the type and asset id');
+        return;
+    }
+    assetManager = rxtAPI.asset.createUserAssetManager(ctx.session,options.type);
+    try {
+        asset = assetManager.get(options.id);
+    } catch (e) {
+        log.error('Unable to obtain the asset details', e);
+    }
+    if (!asset) {
+        ctx.response.sendError(404, 'Asset instance could not be found');
+        return;
+    }
+    output = assetManager.render(asset, page)._custom();
+    caramel.render(output);
+    //print(output);
+}, request, response, session); %>
